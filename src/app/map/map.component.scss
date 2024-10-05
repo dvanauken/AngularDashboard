@@ -1,0 +1,62 @@
+.map-container {
+  width: 100%;
+  height: 500px;  // Adjust as needed
+  border: 1px solid #ccc;
+}
+
+.map-controls {
+  margin-top: 10px;
+
+  button {
+    padding: 5px 10px;
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    cursor: pointer;
+
+    &:hover {
+      background-color: #e0e0e0;
+    }
+  }
+}
+
+.map-legend {
+  margin-top: 10px;
+  display: flex;
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    margin-right: 20px;
+
+    .color-box {
+      width: 20px;
+      height: 20px;
+      margin-right: 5px;
+
+      &.unselected {
+        background-color: #ccc;  // Match this with your map's unselected color
+      }
+
+      &.selected {
+        background-color: #0066cc;  // Match this with your map's selected color
+      }
+    }
+  }
+}
+
+// Styles for the map itself
+:host ::ng-deep {
+  .country {
+    fill: #ccc;
+    stroke: #fff;
+    stroke-width: 0.5px;
+
+    &.selected {
+      fill: #0066cc;
+    }
+
+    &:hover {
+      fill: #999;
+    }
+  }
+}

@@ -1,0 +1,18 @@
+<div class="map-container" #mapContainer>
+  <!-- The D3 map will be rendered here -->
+</div>
+
+<div class="map-controls">
+  <button (click)="clearSelection()">Clear Selection</button>
+</div>
+
+<div class="map-legend">
+  <div class="legend-item">
+    <div class="color-box unselected"></div>
+    <span>Unselected</span>
+  </div>
+  <div class="legend-item">
+    <div class="color-box selected"></div>
+    <span>Selected</span>
+  </div>
+</div>

@@ -1,0 +1,20 @@
+<table>
+  <thead>
+  <tr>
+    <th>Country ID</th>
+    <th>Type</th>
+    <th>Arc Count</th>
+    <th>Complexity</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr *ngFor="let country of countries"
+      [class.selected]="isSelected(country.id)"
+      (click)="onRowClick($event, country.id)">
+    <td>{{ country.id }}</td>
+    <td>{{ country.type }}</td>
+    <td>{{ countArcs(country.arcs) }}</td>
+    <td>{{ calculateComplexity(country.arcs) }}</td>
+  </tr>
+  </tbody>
+</table>

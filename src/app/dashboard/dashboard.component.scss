@@ -1,0 +1,47 @@
+:host {
+  display: block;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.dashboard-container {
+  display: grid;
+  grid-template-areas:
+    "header header header"
+    "nav main aside"
+    "footer footer footer";
+  grid-template-columns: 200px 1fr 200px;
+  grid-template-rows: auto 1fr auto;
+  height: 100%;
+
+  header {
+    grid-area: header;
+    background-color: #007bff;
+    color: white;
+    padding: 1rem;
+  }
+
+  nav {
+    grid-area: nav;
+    background-color: #f8f9fa;
+    padding: 1rem;
+  }
+
+  main {
+    grid-area: main;
+    overflow: hidden;
+  }
+
+  aside {
+    grid-area: aside;
+    background-color: #f8f9fa;
+    padding: 1rem;
+  }
+
+  footer {
+    grid-area: footer;
+    background-color: #343a40;
+    color: white;
+    padding: 1rem;
+  }
+}
