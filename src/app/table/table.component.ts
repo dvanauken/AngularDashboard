@@ -4,9 +4,10 @@ import { SelectionService } from '../selection.service';
 import { DataService } from '../data.service';
 
 interface CountryData {
-  id: string;
-  type: string;
-  arcs?: any[];
+  SOVEREIGNT: string;
+  POP_EST: number;
+  ISO_A3: string;
+  ISO_A2: string;
 }
 
 @Component({
@@ -20,8 +21,8 @@ export class TableComponent implements OnInit, OnDestroy {
   private subscription: Subscription;
 
   constructor(
-    private selectionService: SelectionService,
-    private dataService: DataService
+      private selectionService: SelectionService,
+      private dataService: DataService
   ) {
     this.subscription = new Subscription();
   }
@@ -29,9 +30,9 @@ export class TableComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.loadData();
     this.subscription.add(
-      this.selectionService.selectedCountries$.subscribe(countries => {
-        this.selectedCountries = countries;
-      })
+        this.selectionService.selectedCountries$.subscribe(countries => {
+          this.selectedCountries = countries;
+        })
     );
   }
 
@@ -41,60 +42,38 @@ export class TableComponent implements OnInit, OnDestroy {
 
   loadData() {
     this.dataService.getWorldData().subscribe(
-      (worldData: any) => {
-        this.processWorldData(worldData);
-      },
-      (error: any) => {
-        console.error('Error loading country data:', error);
-      }
+        (worldData: any) => {
+          this.processWorldData(worldData);
+        },
+        (error: any) => {
+          console.error('Error loading country data:', error);
+          console.log('Error details:', error.error);
+          console.log('Status:', error.status);
+          console.log('Status Text:', error.statusText);
+          // Consider adding user-friendly error handling here, e.g., displaying an error message to the user
+        }
     );
   }
 
   private processWorldData(worldData: any) {
-    const countriesGeometry = worldData.objects.countries.geometries;
-    this.countries = countriesGeometry.map((geo: any) => ({
-      id: geo.id,
-      type: geo.type,
-      arcs: geo.arcs
+    if (!worldData.features || !Array.isArray(worldData.features)) {
+      console.error('Invalid GeoJSON structure');
+      return;
+    }
+    this.countries = worldData.features.map((feature: any) => ({
+      SOVEREIGNT: feature.properties.SOVEREIGNT,
+      POP_EST: feature.properties.POP_EST,
+      ISO_A3: feature.properties.ISO_A3,
+      ISO_A2: feature.properties.ISO_A2
     }));
-  }
-
-  public countArcs(arcs: any[] | undefined): number {
-    if (!arcs) return 0;
-    if (Array.isArray(arcs[0])) {
-      return arcs.length;
-    } else {
-      return 1;
-    }
-  }
-
-  public calculateComplexity(arcs: any[] | undefined): number {
-    if (!arcs) return 0;
-    if (Array.isArray(arcs[0])) {
-      return arcs.flat(Infinity).length;
-    } else {
-      return arcs.length;
-    }
   }
 
   isSelected(countryId: string): boolean {
     return this.selectedCountries.includes(countryId);
   }
 
-  onCheckboxChange(event: Event, countryId: string) {
-    const isChecked = (event.target as HTMLInputElement).checked;
-    let updatedSelection = [...this.selectedCountries];
-
-    if (isChecked && !updatedSelection.includes(countryId)) {
-      updatedSelection.push(countryId);
-    } else if (!isChecked) {
-      updatedSelection = updatedSelection.filter(id => id !== countryId);
-    }
-
-    this.selectionService.updateSelection(updatedSelection);
-  }
-
   onRowClick(event: MouseEvent, countryId: string) {
+    event.preventDefault(); // Prevent default selection behavior
     if (event.shiftKey) {
       this.addToSelection(countryId);
     } else if (event.ctrlKey || event.metaKey) {
@@ -113,8 +92,8 @@ export class TableComponent implements OnInit, OnDestroy {
 
   private toggleSelection(countryId: string) {
     const updatedSelection = this.selectedCountries.includes(countryId)
-      ? this.selectedCountries.filter(id => id !== countryId)
-      : [...this.selectedCountries, countryId];
+        ? this.selectedCountries.filter(id => id !== countryId)
+        : [...this.selectedCountries, countryId];
     this.selectionService.updateSelection(updatedSelection);
   }
 
@@ -124,5 +103,18 @@ export class TableComponent implements OnInit, OnDestroy {
 
   clearSelection() {
     this.selectionService.clearSelection();
+  }
+
+  sortByName() {
+    this.countries.sort((a, b) => a.SOVEREIGNT.localeCompare(b.SOVEREIGNT));
+  }
+
+  sortByPopulation() {
+    this.countries.sort((a, b) => b.POP_EST - a.POP_EST);
+  }
+
+  // You can add filtering methods here if needed
+  filterByContinent(continent: string) {
+    // Implementation remains the same
   }
 }

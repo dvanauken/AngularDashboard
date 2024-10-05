@@ -23,7 +23,8 @@ const routes: Routes = [
       { path: '', redirectTo: 'frame', pathMatch: 'full' },
       { path: 'frame', component: FrameComponent }
     ]
-  }
+  },
+  { path: '**', redirectTo: '' }  // This should be the last route
 ];
 
 @NgModule({
