@@ -2,7 +2,8 @@ import { Component, OnInit, AfterViewInit, ElementRef, ViewChild, HostListener, 
 import * as d3 from 'd3';
 import { SelectionService } from '../selection.service';
 import { DataService } from '../data.service';
-import { Subscription } from 'rxjs';
+import { Subscription} from 'rxjs';
+import { FlightProperties } from '../models/geospatial-data.models'; // Add this import
 
 @Component({
     selector: 'app-map',
@@ -15,6 +16,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     private projection: any;
     private path: any;
     private geojson: any;
+    private flights: FlightProperties[] = []; // Initialize as an empty array
     private selectedCountries: string[] = [];
     private subscription: Subscription;
 
@@ -25,22 +27,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
         this.subscription = new Subscription();
     }
 
-    ngOnInit() {
-        this.subscription.add(
-            this.selectionService.selectedCountries$.subscribe(countries => {
-                this.selectedCountries = countries;
-                this.updateMapSelection();
-            })
-        );
-    }
-
-    ngAfterViewInit() {
-        this.createMap();
-    }
-
-    ngOnDestroy() {
-        this.subscription.unsubscribe();
-    }
+    // ... (ngOnInit, ngAfterViewInit, and ngOnDestroy remain unchanged)
 
     private createMap(): void {
         const element = this.mapContainer.nativeElement;
@@ -59,28 +46,48 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
 
         this.dataService.getWorldData().subscribe(
             (worldData: any) => {
-                console.log('World data received:', worldData);
-                if (worldData && worldData.features) {
-                    this.geojson = worldData;
-                    this.drawMap();
-                } else {
-                    console.error('Invalid GeoJSON data structure:', worldData);
-                }
+                this.geojson = worldData;
+                this.drawMap();
+                this.loadFlightData(); // Add this line
             },
             error => {
                 console.error('Error loading world data:', error);
-                if (error.error instanceof ErrorEvent) {
-                    // Client-side or network error
-                    console.error('An error occurred:', error.error.message);
-                } else {
-                    // Backend returned an unsuccessful response code
-                    console.error(
-                        `Backend returned code ${error.status}, ` +
-                        `body was: ${error.error}`
-                    );
-                }
+                console.log('Error details:', error.error);
+                console.log('Status:', error.status);
+                console.log('Status Text:', error.statusText);
             }
         );
+    }
+
+    // Add this method
+    private loadFlightData(): void {
+        this.dataService.getFlightData().subscribe(
+            (flightData: FlightProperties[]) => {
+                this.flights = flightData;
+                this.drawFlightPaths();
+            },
+            error => console.error('Error loading flight data:', error)
+        );
+    }
+
+    private drawFlightPaths(): void {
+        const flightPath = d3.line<[number, number]>()
+            .curve(d3.curveCardinal)
+            .x(d => this.projection(d)[0])
+            .y(d => this.projection(d)[1]);
+
+        this.svg.selectAll('.flight-path')
+            .data(this.flights)
+            .enter()
+            .append('path')
+            .attr('class', 'flight-path')
+            .attr('d', (d: FlightProperties) => flightPath([
+                [parseFloat(d.lon1), parseFloat(d.lat1)],
+                [parseFloat(d.lon2), parseFloat(d.lat2)]
+            ]))
+            .style('fill', 'none')
+            .style('stroke', 'red')
+            .style('stroke-width', 1);
     }
 
     private drawMap(): void {
@@ -139,4 +146,22 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     clearSelection() {
         this.selectionService.clearSelection();
     }
+
+    ngOnInit() {
+        this.subscription.add(
+            this.selectionService.selectedCountries$.subscribe(countries => {
+                this.selectedCountries = countries;
+                this.updateMapSelection();
+            })
+        );
+    }
+
+    ngAfterViewInit() {
+        this.createMap();
+    }
+
+    ngOnDestroy() {
+        this.subscription.unsubscribe();
+    }
+
 }

@@ -13,7 +13,7 @@ echo Project Structure:>"%output_file%"
 echo.>>"%output_file%"
 
 :: Use dir command to list directories and files, excluding unwanted folders
-dir /s /b /a-d | findstr /v /i "\\\.angular\\ \\node_modules\\ \\dist\\" > "%temp%\file_list.txt"
+dir /s /b /a-d | findstr /v /i "\\\.angular\\ \\\.git\\ \\node_modules\\ \\dist\\" > "%temp%\file_list.txt"
 
 :: Process the file list to create a tree-like structure
 for /f "tokens=*" %%A in (%temp%\file_list.txt) do (
@@ -30,14 +30,16 @@ echo.>>"%output_file%"
 echo File Contents:>>"%output_file%"
 echo.>>"%output_file%"
 
-:: Process src directory and its subdirectories
-for /r src %%F in (*) do (
+:: Process src directory and its subdirectories without line breaks
+for /r src %%F in (*.js *.ts *.html *.css) do (
     set "file=%%F"
     if "!file:node_modules=!" == "!file!" if "!file:.angular=!" == "!file!" if "!file:dist=!" == "!file!" (
         echo Processing: !file!
         echo !file:%CD%=!>>"%output_file%"
         echo.>>"%output_file%"
-        type "%%F">>"%output_file%"
+        (for /f "usebackq delims=" %%L in ("%%F") do (
+            <nul set /p=%%L>>"%output_file%"   :: Write each line without line breaks
+        ))
         echo.>>"%output_file%"
         echo ---------------------------------------->>"%output_file%"
         echo.>>"%output_file%"
