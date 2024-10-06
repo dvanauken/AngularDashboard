@@ -1,0 +1,17 @@
+<div class="layer-selector">
+    <h3>Layers</h3>
+    <ul>
+        <li *ngFor="let layer of layers$ | async">
+            <label>
+                <input type="checkbox"
+                       [checked]="layer.visible"
+                       (change)="toggleVisibility(layer.id)">
+                {{ layer.name }}
+            </label>
+            <input type="radio"
+                   [checked]="layer.active"
+                   (change)="setActiveLayer(layer.id)"
+                   name="activeLayer">
+        </li>
+    </ul>
+</div>

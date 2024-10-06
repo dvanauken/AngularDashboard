@@ -2,6 +2,9 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { SelectionService } from '../selection.service';
 import { DataService } from '../data.service';
+import { LayerService } from '../services/layer.service';
+import { Layer } from '../models/layer.model';
+import {FlightProperties} from "../models/geospatial-data.models";
 
 interface CountryData {
   SOVEREIGNT: string;
@@ -17,12 +20,16 @@ interface CountryData {
 })
 export class TableComponent implements OnInit, OnDestroy {
   countries: CountryData[] = [];
+  flights: FlightProperties[] = []; // Add this line
   selectedCountries: string[] = [];
+  selectedRoutes: string[] = [];
+  activeLayer: Layer | null = null;
   private subscription: Subscription;
 
   constructor(
       private selectionService: SelectionService,
-      private dataService: DataService
+      private dataService: DataService,
+      private layerService: LayerService
   ) {
     this.subscription = new Subscription();
   }
@@ -32,6 +39,18 @@ export class TableComponent implements OnInit, OnDestroy {
     this.subscription.add(
         this.selectionService.selectedCountries$.subscribe(countries => {
           this.selectedCountries = countries;
+        })
+    );
+
+    this.subscription.add(
+        this.selectionService.selectedRoutes$.subscribe((routes: string[]) => {
+          this.selectedRoutes = routes;
+        })
+    );
+
+    this.subscription.add(
+        this.layerService.getLayers().subscribe(layers => {
+          this.activeLayer = layers.find(layer => layer.active) || null;
         })
     );
   }
@@ -47,11 +66,13 @@ export class TableComponent implements OnInit, OnDestroy {
         },
         (error: any) => {
           console.error('Error loading country data:', error);
-          console.log('Error details:', error.error);
-          console.log('Status:', error.status);
-          console.log('Status Text:', error.statusText);
-          // Consider adding user-friendly error handling here, e.g., displaying an error message to the user
         }
+    );
+    this.dataService.getFlightData().subscribe(
+        (flightData: FlightProperties[]) => {
+          this.flights = flightData;
+        },
+        error => console.error('Error loading flight data:', error)
     );
   }
 
@@ -81,6 +102,41 @@ export class TableComponent implements OnInit, OnDestroy {
     } else {
       this.newSelection(countryId);
     }
+  }
+
+  onRouteRowClick(event: MouseEvent, route: FlightProperties) {
+    event.preventDefault();
+    const routeId = `${route.airlineIata}-${route.lat1}-${route.lon1}-${route.lat2}-${route.lon2}`;
+    if (event.shiftKey) {
+      this.addToRouteSelection(routeId);
+    } else if (event.ctrlKey || event.metaKey) {
+      this.toggleRouteSelection(routeId);
+    } else {
+      this.newRouteSelection(routeId);
+    }
+  }
+
+  private addToRouteSelection(routeId: string) {
+    if (!this.selectedRoutes.includes(routeId)) {
+      const updatedSelection = [...this.selectedRoutes, routeId];
+      this.selectionService.updateRouteSelection(updatedSelection);
+    }
+  }
+
+  private toggleRouteSelection(routeId: string) {
+    const updatedSelection = this.selectedRoutes.includes(routeId)
+        ? this.selectedRoutes.filter(id => id !== routeId)
+        : [...this.selectedRoutes, routeId];
+    this.selectionService.updateRouteSelection(updatedSelection);
+  }
+
+  private newRouteSelection(routeId: string) {
+    this.selectionService.updateRouteSelection([routeId]);
+  }
+
+  isRouteSelected(route: FlightProperties): boolean {
+    const routeId = `${route.airlineIata}-${route.lat1}-${route.lon1}-${route.lat2}-${route.lon2}`;
+    return this.selectedRoutes.includes(routeId);
   }
 
   private addToSelection(countryId: string) {

@@ -1,20 +1,48 @@
-<table>
-  <thead>
-  <tr>
-    <th>Sovereign State</th>
-    <th>Population Estimate</th>
-    <th>ISO3</th>
-    <th>ISO2</th>
-  </tr>
-  </thead>
-  <tbody>
-  <tr *ngFor="let country of countries"
-      [class.selected]="isSelected(country.ISO_A3)"
-      (click)="onRowClick($event, country.ISO_A3)">
-    <td>{{country.SOVEREIGNT}}</td>
-    <td>{{country.POP_EST | number}}</td>
-    <td>{{country.ISO_A3}}</td>
-    <td>{{country.ISO_A2}}</td>
-  </tr>
-  </tbody>
-</table>
+<!-- src/app/table/table.component.html -->
+
+<ng-container *ngIf="activeLayer">
+  <table *ngIf="activeLayer.id === 'countries'">
+    <thead>
+    <tr>
+      <th>Sovereign State</th>
+      <th>Population Estimate</th>
+      <th>ISO3</th>
+      <th>ISO2</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr *ngFor="let country of countries"
+        [class.selected]="isSelected(country.ISO_A3)"
+        (click)="onRowClick($event, country.ISO_A3)">
+      <td>{{country.SOVEREIGNT}}</td>
+      <td>{{country.POP_EST | number}}</td>
+      <td>{{country.ISO_A3}}</td>
+      <td>{{country.ISO_A2}}</td>
+    </tr>
+    </tbody>
+  </table>
+
+  <table *ngIf="activeLayer?.id === 'flights'">
+    <thead>
+    <tr>
+      <th>Airline</th>
+      <th>Base</th>
+      <th>Ref</th>
+      <th>From</th>
+      <th>To</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr *ngFor="let flight of flights"
+        [class.selected]="isRouteSelected(flight)"
+        (click)="onRouteRowClick($event, flight)">
+      <td>{{flight.airlineIata}}</td>
+      <td>{{flight.base}}</td>
+      <td>{{flight.ref}}</td>
+      <td>{{flight.lat1}}, {{flight.lon1}}</td>
+      <td>{{flight.lat2}}, {{flight.lon2}}</td>
+    </tr>
+    </tbody>
+  </table>
+
+</ng-container>

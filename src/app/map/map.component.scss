@@ -60,3 +60,27 @@
     }
   }
 }
+
+.flight-path.selected {
+  stroke: yellow;
+  stroke-width: 3px;
+}
+
+.route-row.selected {
+  background-color: lightblue;
+}
+
+.flight-path {
+  fill: none;
+  stroke: red;
+  stroke-width: 1px;
+}
+
+.flight-path {
+  transition: all 0.3s ease;
+}
+
+.flight-path.selected {
+  stroke: yellow;
+  stroke-width: 4px;
+}
